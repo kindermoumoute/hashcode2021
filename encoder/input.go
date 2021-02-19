@@ -1,29 +1,10 @@
-package main
+package encoder
 
 import (
-	_ "embed"
 	"strings"
 
 	"github.com/kindermoumoute/adventofcode/pkg"
 )
-
-//go:embed input/a_example.txt
-var inputA string
-
-//go:embed input/b_read_on.txt
-var inputB string
-
-//go:embed input/c_incunabula.txt
-var inputC string
-
-//go:embed input/d_tough_choices.txt
-var inputD string
-
-//go:embed input/e_so_many_books.txt
-var inputE string
-
-//go:embed input/f_libraries_of_the_world.txt
-var inputF string
 
 func DecodeInput(s string) Input {
 	input := Input{}
