@@ -1,0 +1,9 @@
+version: v1beta1
+plugins:
+  - name: go
+    out: generated/go/hashcode
+    opt: paths=source_relative
+#  - name: java
+#    out: generated/java/hashcode
+#  - name: python
+#    out: generated/python/hashcode
