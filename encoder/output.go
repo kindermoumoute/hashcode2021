@@ -2,30 +2,20 @@ package encoder
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
+	"github.com/kindermoumoute/hashcode2021/model"
 )
+
+type Output struct {
+	Libraries []*model.Library
+}
 
 func EncodeOutput(o Output) string {
 	output := fmt.Sprintf("%d\n", len(o.Libraries))
 
 	for _, lib := range o.Libraries {
-		output += fmt.Sprintf("%d %d\n", lib.ID, len(lib.ScannedBookIDs))
-		bookIDStrings := []string(nil)
-		for _, bookID := range lib.ScannedBookIDs {
-			bookIDStrings = append(bookIDStrings, strconv.Itoa(bookID))
-		}
-		output += strings.Join(bookIDStrings, " ")
+		output += fmt.Sprintf("%d %d\n", lib.ID, len(lib.GetAssignedBooks()))
+		output += fmt.Sprintf("%s\n", lib.GetScannedBooksID())
 	}
 
 	return output
-}
-
-type Output struct {
-	Libraries []*OutputLibrary
-}
-
-type OutputLibrary struct {
-	ID             int
-	ScannedBookIDs []int
 }

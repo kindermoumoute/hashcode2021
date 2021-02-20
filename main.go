@@ -29,19 +29,13 @@ var (
 )
 
 func main() {
-	//DecodeInput(inputA).stats()
-	//DecodeInput(inputB).stats()
-	//DecodeInput(inputC).stats()
-	//DecodeInput(inputD).stats()
-	//DecodeInput(inputE).stats()
-	stats(encoder.DecodeInput(inputF))
-
-	//EncodeOutput()
-
+	file := inputA
+	input := encoder.DecodeInput(file)
+	fmt.Println(input)
 }
 
 func stats(i encoder.Input) {
-	fmt.Println("Days for scanning", i.DaysForScanning)
+	fmt.Println("Days for scanning", i.NbrDays)
 
 	scoreCount := make(map[int]int)
 	for _, book := range i.Books {
