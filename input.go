@@ -1,18 +1,15 @@
-package encoder
+package main
 
 import (
-	"github.com/kindermoumoute/hashcode2021/model"
 	"strings"
 
 	"github.com/kindermoumoute/adventofcode/pkg"
 )
 
 type Input struct {
-	NbrBooks     int
-	NbrLibraries int
-	NbrDays      int
-	Books        []*model.Book
-	Libraries    []*model.Library
+	NbrDays   int
+	Books     []*Book
+	Libraries []*Library
 }
 
 func DecodeInput(s string) Input {
@@ -21,17 +18,13 @@ func DecodeInput(s string) Input {
 	lines := strings.Split(s, "\n")
 	firstLine := pkg.ParseIntList(lines[0], " ")
 
-	input.NbrBooks = firstLine[0]
-	input.NbrLibraries = firstLine[1]
 	input.NbrDays = firstLine[2]
 
-	input.Books = make([]*model.Book, input.NbrBooks)
-	input.Libraries = make([]*model.Library, input.NbrLibraries)
-
+	input.Books = []*Book(nil)
+	input.Libraries = []*Library(nil)
 
 	for bookID, bookScore := range pkg.ParseIntList(lines[1], " ") {
-		input.Books = append(input.Books, &model.Book{
-
+		input.Books = append(input.Books, &Book{
 			ID:    bookID,
 			Score: bookScore,
 		})
@@ -42,9 +35,9 @@ func DecodeInput(s string) Input {
 			break
 		}
 		libraryDetails := pkg.ParseIntList(lines[numLine], " ")
-		library := &model.Library{
+		library := &Library{
 			ID:            libID,
-			Books:         make([]*model.Book, libraryDetails[0]),
+			Books:         make([]*Book, libraryDetails[0]),
 			DaysForSignup: libraryDetails[1],
 			BooksPerDay:   libraryDetails[2],
 		}

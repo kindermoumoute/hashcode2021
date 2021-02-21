@@ -1,8 +1,6 @@
-package model
+package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Library struct {
 	ID            int
