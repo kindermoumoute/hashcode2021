@@ -6,6 +6,11 @@ import (
 	"github.com/kindermoumoute/adventofcode/pkg"
 )
 
+type RawInput struct {
+	Raw      string
+	FileName string
+}
+
 type Input struct {
 	NbrDays   int
 	Books     []*Book

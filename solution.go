@@ -7,6 +7,19 @@ type Solution struct {
 	Score     float64
 }
 
+type SolverParameters struct {
+	Input  Input
+	Param1 int
+}
+
+func Solve(params SolverParameters) *Solution {
+	return &Solution{}
+}
+
+func (s *Solution) Output() []byte {
+	return []byte("plop")
+}
+
 func (s *Solution) Scoring() {
 	var (
 		score       float64
