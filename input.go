@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -102,6 +103,9 @@ func (p Pizza) ScoreWith23(pizzaB Pizza, distinctIngredient float64) float64 {
 	AUnionB := float64(A.Union(B).Count())
 	AIntersectB := float64(A.Intersection(B).Count())
 
+	fmt.Println(notA.Intersection(A).Count())
+	fmt.Println(notA.Intersection(B).Count())
+
 	return math.Min(AOverB, BOverA) *
 		((1 - AIntersectB) / distinctIngredient) *
 		(AUnionB / distinctIngredient)
@@ -111,7 +115,7 @@ type Pizza2 struct {
 	pizzaA       *Pizza
 	pizzaB       *Pizza
 	IngredientsB *bitbitset.BitSet // toutes les pizzas ont ce slice de la meme longueur
-	Score        int
+	Score        float64
 	Locked       bool
 }
 
@@ -149,7 +153,7 @@ type Pizza3 struct {
 	Pizzas2      *Pizza2
 	pizzaC       *Pizza
 	IngredientsB *bitbitset.BitSet // toutes les pizzas ont ce slice de la meme longueur
-	Score        int
+	Score        float64
 	Locked       bool
 }
 
@@ -187,7 +191,7 @@ type Pizza4 struct {
 	Pizzas3      *Pizza3
 	pizzaD       *Pizza
 	IngredientsB *bitbitset.BitSet // toutes les pizzas ont ce slice de la meme longueur
-	Score        int
+	Score        float64
 }
 
 func (p4 Pizza4) ScoreWithPizza(pizzaD Pizza) int {
@@ -222,6 +226,7 @@ func (p4 Pizza4) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) floa
 
 type Ingredient struct {
 	Name string
+	ID   uint
 }
 
 type Team struct {

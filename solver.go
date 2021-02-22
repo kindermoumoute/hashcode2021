@@ -18,16 +18,16 @@ func Solve(params SolverParameters) *Solution {
 	fmt.Println("total ingredients", len(params.Ingredients))
 	fmt.Println("total pizzas", len(params.Pizzas))
 
+	cptI := uint(0)
+	for _, ingredient := range params.Ingredients {
+		ingredient.ID = cptI
+		cptI++
+	}
 	for _, pizza := range params.Input.Pizzas {
 		pizza.IngredientsB = bitset.New(uint(len(params.Ingredients)))
-		cptI := uint(0)
-		for ingredient := range params.Ingredients {
-			for _, i := range pizza.Ingredients {
-				if ingredient == i.Name {
-					pizza.IngredientsB.Set(cptI)
-				}
-			}
-			cptI++
+
+		for _, ingredient := range pizza.Ingredients {
+			pizza.IngredientsB.Set(ingredient.ID)
 		}
 	}
 
@@ -36,8 +36,8 @@ func Solve(params SolverParameters) *Solution {
 	nbrTeam4 := params.Input.GetQuadrinomesCount()
 	fmt.Println("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
 
-	seuilMax := float64(len(params.Input.Ingredients)) * 0.95
-	seuilMin := float64(len(params.Input.Ingredients)) * 0.1
+	seuilMax := 0.95
+	seuilMin := 0.1
 
 	var pizzas2 []*Pizza2
 
@@ -51,12 +51,12 @@ func Solve(params SolverParameters) *Solution {
 			continue
 		}
 		var bestPizza *Pizza
-		bestScore := 0
+		bestScore := 0.0
 		for _, pizzaB := range params.Pizzas {
 			if pizzaA == pizzaB || pizzaB.Used {
 				continue
 			}
-			localScore := pizzaA.ScoreWith(*pizzaB)
+			localScore := pizzaA.ScoreWith23(*pizzaB, float64(len(params.Ingredients)))
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza = pizzaB
@@ -65,7 +65,7 @@ func Solve(params SolverParameters) *Solution {
 		if bestPizza == nil {
 			continue
 		}
-		if bestScore < int(seuilMin) {
+		if bestScore < seuilMin {
 			continue
 		}
 		pizzaA.Used = true
@@ -77,7 +77,7 @@ func Solve(params SolverParameters) *Solution {
 			Score:        bestScore,
 		}
 		p2.IngredientsB = pizzaA.IngredientsB.Union(bestPizza.IngredientsB)
-		if bestScore > int(seuilMax) {
+		if bestScore > seuilMax {
 			p2.Locked = true
 		}
 		pizzas2 = append(pizzas2, p2)
@@ -97,12 +97,12 @@ func Solve(params SolverParameters) *Solution {
 
 		var bestPizza2 *Pizza2
 		var numBestPizza2 int
-		bestScore := 0
+		bestScore := 0.0
 		for numPizza2, pizza2 := range pizzas2 {
 			if pizza2.Locked {
 				continue
 			}
-			localScore := pizza2.ScoreWithPizza(*pizza)
+			localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza2 = pizza2
@@ -112,7 +112,7 @@ func Solve(params SolverParameters) *Solution {
 		if bestPizza2 == nil {
 			continue
 		}
-		if bestScore < int(seuilMin) {
+		if bestScore < seuilMin {
 			continue
 		}
 		pizza.Used = true
@@ -125,7 +125,7 @@ func Solve(params SolverParameters) *Solution {
 		pizzas2[len(pizzas2)-1], pizzas2[numBestPizza2] = pizzas2[numBestPizza2], pizzas2[len(pizzas2)-1]
 		pizzas2 = pizzas2[:len(pizzas2)-1]
 		p3.IngredientsB = bestPizza2.IngredientsB.Union(pizza.IngredientsB)
-		if bestScore > int(seuilMax) {
+		if bestScore > seuilMax {
 			p3.Locked = true
 		}
 		pizzas3 = append(pizzas3, p3)
@@ -145,12 +145,12 @@ func Solve(params SolverParameters) *Solution {
 
 		var bestPizza3 *Pizza3
 		var numBestPizza3 int
-		bestScore := 0
+		bestScore := 0.0
 		for numPizza3, pizza3 := range pizzas3 {
 			if pizza3.Locked {
 				continue
 			}
-			localScore := pizza3.ScoreWithPizza(*pizza)
+			localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza3 = pizza3
@@ -160,7 +160,7 @@ func Solve(params SolverParameters) *Solution {
 		if bestPizza3 == nil {
 			continue
 		}
-		if bestScore < int(seuilMin) {
+		if bestScore < seuilMin {
 			continue
 		}
 		pizza.Used = true
@@ -190,12 +190,12 @@ func Solve(params SolverParameters) *Solution {
 		}
 
 		bestPizza2 := &Pizza2{}
-		bestScore2 := 0
+		bestScore2 := 0.0
 		bestPizza3 := &Pizza3{}
-		bestScore3 := 0
+		bestScore3 := 0.0
 		if len(pizzas3) < nbrTeam3 {
 			for _, pizza2 := range pizzas2 {
-				localScore := pizza2.ScoreWithPizza(*pizza)
+				localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
 				if localScore > bestScore2 {
 					bestScore2 = localScore
 					bestPizza2 = pizza2
@@ -204,7 +204,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 		if len(pizzas4) < nbrTeam4 {
 			for _, pizza3 := range pizzas3 {
-				localScore := pizza3.ScoreWithPizza(*pizza)
+				localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
 				if localScore > bestScore3 {
 					bestScore3 = localScore
 					bestPizza3 = pizza3
