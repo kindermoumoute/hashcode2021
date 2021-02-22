@@ -19,9 +19,9 @@ func (r *Runner) RunSolver(outputName string, params SolverParameters) {
 	r.wg.Add(1)
 	go func() {
 		defer r.wg.Done()
-		fmt.Println("solving", outputName)
-
-		assertNoErr(ioutil.WriteFile(path.Join("output", outputName), Solve(params).Output(), 0644))
+		solution := Solve(params)
+		fmt.Println("solving", outputName, "score is", solution.Scoring())
+		assertNoErr(ioutil.WriteFile(path.Join("output", outputName), solution.Output(), 0644))
 	}()
 }
 
