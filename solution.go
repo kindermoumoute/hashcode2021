@@ -21,7 +21,7 @@ func (s *Solution) Output() []byte {
 		for _, p := range pizzaTeam.Pizzas {
 			pizzas = append(pizzas, strconv.Itoa(p.ID))
 		}
-		output += strconv.Itoa(pizzaTeam.TeamSize) + " " + strings.Join(pizzas, " ")
+		output += strconv.Itoa(pizzaTeam.TeamSize) + " " + strings.Join(pizzas, " ") + "\n"
 	} // Prepare pizza boolean arrays
 
 	return []byte(output)

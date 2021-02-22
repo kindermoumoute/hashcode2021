@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"strings"
 
 	"github.com/kindermoumoute/adventofcode/pkg"
@@ -80,18 +81,28 @@ func (p Pizza) ScoreWith(pizzaB Pizza) int {
 //
 // 	D_{i, j} = (min(d_{i, j}, d_{j, i})) * ((1 - (sum(I_i & I_j) / NB_DISTINCT_INGREDIENTS))) * ((sum(I_i | I_j) / NB_DISTINCT_INGREDIENTS))
 //
-func (p Pizza) ScoreWith23(pizzaB Pizza, distinctIngredient int) int {
+func (p Pizza) ScoreWith23(pizzaB Pizza, distinctIngredient float64) float64 {
 	A := p.IngredientsB
 	B := pizzaB.IngredientsB
 	notA := A.Complement()
 	notB := B.Complement()
-	AOverB := notA.Intersection(B).Count() / notA.Count() // d_{a, b}
-	BOverA := notB.Intersection(A).Count() / notA.Count() // d_{b, a}
+	var AOverB float64
+	var BOverA float64
+	if int(notA.Count()) == 0 {
+		AOverB = 1.0
+	} else {
+		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
+	}
+	if int(notB.Count()) == 0 {
+		BOverA = 1.0
+	} else {
+		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
+	}
 
-	AUnionB := int(A.Union(B).Count())
-	AIntersectB := int(A.Intersection(B).Count())
+	AUnionB := float64(A.Union(B).Count())
+	AIntersectB := float64(A.Intersection(B).Count())
 
-	return pkg.Min(int(AOverB), int(BOverA)) *
+	return math.Min(AOverB, BOverA) *
 		((1 - AIntersectB) / distinctIngredient) *
 		(AUnionB / distinctIngredient)
 }
@@ -108,6 +119,32 @@ func (p2 Pizza2) ScoreWithPizza(pizzaB Pizza) int {
 	return int(p2.IngredientsB.SymmetricDifferenceCardinality(pizzaB.IngredientsB))
 }
 
+func (p2 Pizza2) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {
+	A := p2.IngredientsB
+	B := pizzaB.IngredientsB
+	notA := A.Complement()
+	notB := B.Complement()
+	var AOverB float64
+	var BOverA float64
+	if int(notA.Count()) == 0 {
+		AOverB = 1.0
+	} else {
+		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
+	}
+	if int(notB.Count()) == 0 {
+		BOverA = 1.0
+	} else {
+		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
+	}
+
+	AUnionB := float64(A.Union(B).Count())
+	AIntersectB := float64(A.Intersection(B).Count())
+
+	return math.Min(AOverB, BOverA) *
+		((1 - AIntersectB) / distinctIngredient) *
+		(AUnionB / distinctIngredient)
+}
+
 type Pizza3 struct {
 	Pizzas2      *Pizza2
 	pizzaC       *Pizza
@@ -120,6 +157,32 @@ func (p3 Pizza3) ScoreWithPizza(pizzaC Pizza) int {
 	return int(p3.IngredientsB.SymmetricDifferenceCardinality(pizzaC.IngredientsB))
 }
 
+func (p3 Pizza3) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {
+	A := p3.IngredientsB
+	B := pizzaB.IngredientsB
+	notA := A.Complement()
+	notB := B.Complement()
+	var AOverB float64
+	var BOverA float64
+	if int(notA.Count()) == 0 {
+		AOverB = 1.0
+	} else {
+		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
+	}
+	if int(notB.Count()) == 0 {
+		BOverA = 1.0
+	} else {
+		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
+	}
+
+	AUnionB := float64(A.Union(B).Count())
+	AIntersectB := float64(A.Intersection(B).Count())
+
+	return math.Min(AOverB, BOverA) *
+		((1 - AIntersectB) / distinctIngredient) *
+		(AUnionB / distinctIngredient)
+}
+
 type Pizza4 struct {
 	Pizzas3      *Pizza3
 	pizzaD       *Pizza
@@ -129,6 +192,32 @@ type Pizza4 struct {
 
 func (p4 Pizza4) ScoreWithPizza(pizzaD Pizza) int {
 	return int(p4.IngredientsB.SymmetricDifferenceCardinality(pizzaD.IngredientsB))
+}
+
+func (p4 Pizza4) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {
+	A := p4.IngredientsB
+	B := pizzaB.IngredientsB
+	notA := A.Complement()
+	notB := B.Complement()
+	var AOverB float64
+	var BOverA float64
+	if int(notA.Count()) == 0 {
+		AOverB = 1.0
+	} else {
+		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
+	}
+	if int(notB.Count()) == 0 {
+		BOverA = 1.0
+	} else {
+		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
+	}
+
+	AUnionB := float64(A.Union(B).Count())
+	AIntersectB := float64(A.Intersection(B).Count())
+
+	return math.Min(AOverB, BOverA) *
+		((1 - AIntersectB) / distinctIngredient) *
+		(AUnionB / distinctIngredient)
 }
 
 type Ingredient struct {
