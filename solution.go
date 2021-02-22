@@ -1,18 +1,27 @@
 package main
 
+import "fmt"
+
 type Solution struct {
-	NbrDays int
-	// must be sorted by score
-	Libraries []*Library
-	Score     float64
 }
 
 type SolverParameters struct {
-	Input  Input
-	Param1 int
+	Input Input
+	//Param1 int
 }
 
 func Solve(params SolverParameters) *Solution {
+	for _, team := range params.Input.Teams {
+		fmt.Println("There are", team.Count, "teams of size", team.TeamSize)
+	}
+	fmt.Println("total ingredients", len(params.Input.Ingredients))
+	for ingredient, pizzas := range params.Input.PizzaPerIngredients {
+		fmt.Println("pizza IDs with ingredient", ingredient)
+		for _, pizza := range pizzas {
+			fmt.Print(pizza.ID, ",")
+		}
+		fmt.Println()
+	}
 	return &Solution{}
 }
 
@@ -21,26 +30,5 @@ func (s *Solution) Output() []byte {
 }
 
 func (s *Solution) Scoring() {
-	var (
-		score       float64
-		signUpUntil int
-	)
 
-	for numDay := 0; numDay < s.NbrDays; numDay++ {
-		for _, library := range s.Libraries {
-			score += library.ScoreOfTheDay(numDay)
-		}
-
-		if numDay >= signUpUntil {
-			for _, library := range s.Libraries {
-				if library.NumDaySignedUp == nil {
-					*library.NumDaySignedUp = numDay
-					signUpUntil = numDay + library.DaysForSignup
-					break
-				}
-			}
-		}
-	}
-
-	s.Score = score
 }

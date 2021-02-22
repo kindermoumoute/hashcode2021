@@ -4,19 +4,23 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"path"
+	"strings"
 )
 
 func main() {
-	var fileNames []string
+	var filePaths []string
 	flag.Parse()
-	fileNames = append(fileNames, flag.Args()...)
-	fileNames = append(fileNames, "input/a_example.txt")
-	fmt.Println("start")
+	filePaths = append(filePaths, flag.Args()...)
+	filePaths = append(filePaths, "input/a_example.in")
 
 	files := []*RawInput(nil)
-	for _, fileName := range fileNames {
-		fmt.Println("reading", fileName)
-		rawInput, err := ioutil.ReadFile(fileName)
+	for _, filePath := range filePaths {
+		fmt.Println("reading", filePath)
+		_, fileName := path.Split(filePath)
+		tmp := strings.Split(fileName, ".")
+		fileName = strings.Join(tmp[:len(tmp)-1], ".")
+		rawInput, err := ioutil.ReadFile(filePath)
 		assertNoErr(err)
 		files = append(files, &RawInput{
 			Raw:      string(rawInput),
@@ -26,9 +30,8 @@ func main() {
 
 	r := NewRunner()
 	for _, rawInput := range files {
-		r.RunSolver(rawInput.FileName+"_output.txt", SolverParameters{
-			Input:  DecodeInput(rawInput.Raw),
-			Param1: 2,
+		r.RunSolver(rawInput.FileName+"_latest.txt", SolverParameters{
+			Input: DecodeInput(rawInput.Raw),
 		})
 
 		// for i := 0; i < 1000; i++ {

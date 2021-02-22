@@ -12,47 +12,62 @@ type RawInput struct {
 }
 
 type Input struct {
-	NbrDays   int
-	Books     []*Book
-	Libraries []*Library
+	Pizzas []*Pizza
+	Teams  []*Team
+
+	// Usefull data
+	Ingredients         map[string]*Ingredient
+	PizzaPerIngredients map[string][]*Pizza
+}
+
+type Pizza struct {
+	ID          int
+	Ingredients []*Ingredient
+}
+
+type Ingredient struct {
+	Name string
+}
+
+type Team struct {
+	TeamSize int
+	Count    int
 }
 
 func DecodeInput(s string) Input {
-	input := Input{}
+	input := Input{
+		Ingredients:         make(map[string]*Ingredient),
+		PizzaPerIngredients: make(map[string][]*Pizza),
+	}
 
 	lines := strings.Split(s, "\n")
-	firstLine := pkg.ParseIntList(lines[0], " ")
-
-	input.NbrDays = firstLine[2]
-
-	input.Books = []*Book(nil)
-	input.Libraries = []*Library(nil)
-
-	for bookID, bookScore := range pkg.ParseIntList(lines[1], " ") {
-		input.Books = append(input.Books, &Book{
-			ID:    bookID,
-			Score: bookScore,
+	header := pkg.ParseIntList(lines[0], " ")
+	for teamType, count := range header[1:] {
+		input.Teams = append(input.Teams, &Team{
+			TeamSize: teamType + 2,
+			Count:    count,
 		})
 	}
 
-	for libID, numLine := 0, 2; numLine < len(lines); libID, numLine = libID+1, numLine+2 {
-		if len(lines[numLine]) == 0 {
+	for id, line := range lines[1:] {
+		if len(line) == 0 { // trailing line
 			break
 		}
-		libraryDetails := pkg.ParseIntList(lines[numLine], " ")
-		library := &Library{
-			ID:            libID,
-			Books:         make([]*Book, libraryDetails[0]),
-			DaysForSignup: libraryDetails[1],
-			BooksPerDay:   libraryDetails[2],
+		pizza := &Pizza{
+			ID: id,
 		}
-
-		booksID := pkg.ParseIntList(lines[numLine+1], " ")
-		for _, bookID := range booksID {
-			library.Books = append(library.Books, input.Books[bookID])
+		for _, newIngredient := range strings.Split(line, " ")[1:] {
+			ingredient, exist := input.Ingredients[newIngredient]
+			if !exist {
+				ingredient = &Ingredient{
+					Name: newIngredient,
+				}
+				input.Ingredients[newIngredient] = ingredient
+			}
+			pizza.Ingredients = append(pizza.Ingredients, ingredient)
+			input.PizzaPerIngredients[newIngredient] = append(input.PizzaPerIngredients[newIngredient], pizza)
 		}
-
-		input.Libraries = append(input.Libraries, library)
+		input.Pizzas = append(input.Pizzas, pizza)
 	}
 
 	return input
