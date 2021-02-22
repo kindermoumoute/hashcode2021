@@ -11,17 +11,19 @@ type SolverParameters struct {
 }
 
 func Solve(params SolverParameters) *Solution {
-	for _, team := range params.Input.Teams {
-		fmt.Println("There are", team.Count, "teams of size", team.TeamSize)
-	}
+	fmt.Println("There are", len(params.Input.Teams), "teams")
 	fmt.Println("total ingredients", len(params.Input.Ingredients))
-	for ingredient, pizzas := range params.Input.PizzaPerIngredients {
-		fmt.Println("pizza IDs with ingredient", ingredient)
-		for _, pizza := range pizzas {
-			fmt.Print(pizza.ID, ",")
-		}
-		fmt.Println()
-	}
+	fmt.Println("total pizzas", len(params.Input.Pizzas))
+	//for _, team := range params.Input.Teams {
+	//	fmt.Println("There are", team.Count, "teams of size", team.TeamSize)
+	//}
+	//for ingredient, pizzas := range params.Input.PizzaPerIngredients {
+	//	fmt.Println("pizza IDs with ingredient", ingredient, len(pizzas))
+	//	//for _, pizza := range pizzas {
+	//	//	fmt.Print(pizza.ID, ",")
+	//	//}
+	//	//fmt.Println()
+	//}
 	return &Solution{}
 }
 
