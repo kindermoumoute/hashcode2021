@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -30,6 +29,11 @@ type Pizza struct {
 	// chacun des tableaux devraient avoir la mmême taille, pour chaque pizza
 	IngredientsB *bitbitset.BitSet
 	Used         bool
+	Score        float64
+}
+
+func (p *Pizza) Scoring() {
+	p.Score = float64(p.IngredientsB.Count())
 }
 
 // region getters
@@ -71,8 +75,8 @@ func (i Input) GetQuadrinomesCount() int {
 
 // endregion getters
 
-func (p Pizza) ScoreWith(pizzaB Pizza) int {
-	return int(p.IngredientsB.SymmetricDifferenceCardinality(pizzaB.IngredientsB))
+func (p Pizza) ScoreWith(pizzaB Pizza) float64 {
+	return float64(p.IngredientsB.SymmetricDifferenceCardinality(pizzaB.IngredientsB))
 }
 
 // Pour les couples I_i, I_j on calcule les distance:
@@ -89,12 +93,12 @@ func (p Pizza) ScoreWith23(pizzaB Pizza, distinctIngredient float64) float64 {
 	notB := B.Complement()
 	var AOverB float64
 	var BOverA float64
-	if int(notA.Count()) == 0 {
+	if notA.Count() == 0 {
 		AOverB = 1.0
 	} else {
 		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
 	}
-	if int(notB.Count()) == 0 {
+	if notB.Count() == 0 {
 		BOverA = 1.0
 	} else {
 		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
@@ -102,9 +106,6 @@ func (p Pizza) ScoreWith23(pizzaB Pizza, distinctIngredient float64) float64 {
 
 	AUnionB := float64(A.Union(B).Count())
 	AIntersectB := float64(A.Intersection(B).Count())
-
-	fmt.Println(notA.Intersection(A).Count())
-	fmt.Println(notA.Intersection(B).Count())
 
 	return math.Min(AOverB, BOverA) *
 		((1 - AIntersectB) / distinctIngredient) *
@@ -119,8 +120,8 @@ type Pizza2 struct {
 	Locked       bool
 }
 
-func (p2 Pizza2) ScoreWithPizza(pizzaB Pizza) int {
-	return int(p2.IngredientsB.SymmetricDifferenceCardinality(pizzaB.IngredientsB))
+func (p2 Pizza2) ScoreWithPizza(pizzaB Pizza) float64 {
+	return float64(p2.IngredientsB.SymmetricDifferenceCardinality(pizzaB.IngredientsB))
 }
 
 func (p2 Pizza2) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {
@@ -157,8 +158,8 @@ type Pizza3 struct {
 	Locked       bool
 }
 
-func (p3 Pizza3) ScoreWithPizza(pizzaC Pizza) int {
-	return int(p3.IngredientsB.SymmetricDifferenceCardinality(pizzaC.IngredientsB))
+func (p3 Pizza3) ScoreWithPizza(pizzaC Pizza) float64 {
+	return float64(p3.IngredientsB.SymmetricDifferenceCardinality(pizzaC.IngredientsB))
 }
 
 func (p3 Pizza3) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {
@@ -168,12 +169,12 @@ func (p3 Pizza3) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) floa
 	notB := B.Complement()
 	var AOverB float64
 	var BOverA float64
-	if int(notA.Count()) == 0 {
+	if notA.Count() == 0 {
 		AOverB = 1.0
 	} else {
 		AOverB = float64(notA.Intersection(B).Count()) / float64(notA.Count()) // d_{a, b}
 	}
-	if int(notB.Count()) == 0 {
+	if notB.Count() == 0 {
 		BOverA = 1.0
 	} else {
 		BOverA = float64(notB.Intersection(A).Count()) / float64(notB.Count()) // d_{a, b}
@@ -194,8 +195,8 @@ type Pizza4 struct {
 	Score        float64
 }
 
-func (p4 Pizza4) ScoreWithPizza(pizzaD Pizza) int {
-	return int(p4.IngredientsB.SymmetricDifferenceCardinality(pizzaD.IngredientsB))
+func (p4 Pizza4) ScoreWithPizza(pizzaD Pizza) float64 {
+	return float64(p4.IngredientsB.SymmetricDifferenceCardinality(pizzaD.IngredientsB))
 }
 
 func (p4 Pizza4) ScoreWithPizza23(pizzaB Pizza, distinctIngredient float64) float64 {

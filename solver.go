@@ -34,10 +34,9 @@ func Solve(params SolverParameters) *Solution {
 	nbrTeam2 := params.Input.GetBinomesCount()
 	nbrTeam3 := params.Input.GetTrinomesCount()
 	nbrTeam4 := params.Input.GetQuadrinomesCount()
-	fmt.Println("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
 
-	seuilMax := 0.95
-	seuilMin := 0.1
+	seuilMax := 0.90 * float64(len(params.Ingredients))
+	seuilMin := 0.00001 * float64(len(params.Ingredients))
 
 	var pizzas2 []*Pizza2
 
@@ -46,9 +45,22 @@ func Solve(params SolverParameters) *Solution {
 	// il faudrait modifier ça
 	// peut-être d'abord trier les pizzas par nombre d'ingrédients ?
 
-	for _, pizzaA := range params.Pizzas {
+	for _, pizza := range params.Pizzas {
+		pizza.Scoring()
+	}
+
+	sort.Slice(params.Pizzas, func(i, j int) bool {
+		return params.Pizzas[i].Score > params.Pizzas[j].Score
+	})
+
+	for cpt, pizzaA := range params.Pizzas {
+		cpt++
 		if pizzaA.Used {
 			continue
+		}
+
+		if cpt%100 == 0 {
+			fmt.Printf(" %2.2f%%, %d", float64(cpt)/float64(len(params.Pizzas))*100, cpt)
 		}
 		var bestPizza *Pizza
 		bestScore := 0.0
@@ -56,7 +68,12 @@ func Solve(params SolverParameters) *Solution {
 			if pizzaA == pizzaB || pizzaB.Used {
 				continue
 			}
+			if pizzaB.Score < seuilMin {
+				break
+			}
 			localScore := pizzaA.ScoreWith23(*pizzaB, float64(len(params.Ingredients)))
+			// localScore := pizzaA.ScoreWith(*pizzaB)
+			// fmt.Println(localScore, bestScore)
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza = pizzaB
@@ -86,6 +103,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
+	fmt.Println()
 	fmt.Println("pizzas 2 done", len(pizzas2))
 
 	var pizzas3 []*Pizza3
@@ -102,7 +120,8 @@ func Solve(params SolverParameters) *Solution {
 			if pizza2.Locked {
 				continue
 			}
-			localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			// localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			localScore := pizza2.ScoreWithPizza(*pizza)
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza2 = pizza2
@@ -134,7 +153,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("pizzas 3 done")
+	fmt.Println("pizzas 3 done", len(pizzas2), len(pizzas3))
 
 	var pizzas4 []*Pizza4
 
@@ -150,7 +169,8 @@ func Solve(params SolverParameters) *Solution {
 			if pizza3.Locked {
 				continue
 			}
-			localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			// localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			localScore := pizza3.ScoreWithPizza(*pizza)
 			if localScore > bestScore {
 				bestScore = localScore
 				bestPizza3 = pizza3
@@ -179,7 +199,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("pizzas 4 done")
+	fmt.Println("pizzas 4 done", len(pizzas2), len(pizzas3), len(pizzas4))
 
 	// on devrait avoir une dernière étape pour casserles groupes de pizzas si on a trop
 	// de group de pizza et pas assez de team
@@ -189,44 +209,65 @@ func Solve(params SolverParameters) *Solution {
 			continue
 		}
 
-		bestPizza2 := &Pizza2{}
+		var bestPizza2 *Pizza2
 		bestScore2 := 0.0
-		bestPizza3 := &Pizza3{}
+		var numBestPizza2 int
+		var bestPizza3 *Pizza3
 		bestScore3 := 0.0
+		var numBestPizza3 int
 		if len(pizzas3) < nbrTeam3 {
-			for _, pizza2 := range pizzas2 {
-				localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			for numPizza2, pizza2 := range pizzas2 {
+				// localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+				localScore := pizza2.ScoreWithPizza(*pizza)
 				if localScore > bestScore2 {
 					bestScore2 = localScore
 					bestPizza2 = pizza2
+					numBestPizza2 = numPizza2
 				}
 			}
 		}
 		if len(pizzas4) < nbrTeam4 {
-			for _, pizza3 := range pizzas3 {
-				localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+			for numPizza3, pizza3 := range pizzas3 {
+				// localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
+				localScore := pizza3.ScoreWithPizza(*pizza)
 				if localScore > bestScore3 {
 					bestScore3 = localScore
 					bestPizza3 = pizza3
+					numBestPizza3 = numPizza3
 				}
 			}
 		}
-		bestScore2 = bestScore2 * bestScore2
-		bestScore3 = bestScore3 * bestScore3
+
+		if bestPizza2 != nil {
+			bestScore2 = bestScore2 * bestScore2
+		}
+		if bestPizza3 != nil {
+			bestScore3 = bestScore3 * bestScore3
+		}
+
+		if bestPizza2 == nil && bestPizza3 == nil {
+			continue
+		}
 
 		pizza.Used = true
+
 		switch {
-		case bestScore3 > bestScore2:
-			p3 := &Pizza3{Pizzas2: bestPizza2, pizzaC: pizza}
-			p3.IngredientsB = bestPizza3.IngredientsB.Union(pizza.IngredientsB)
-			pizzas3 = append(pizzas3, p3)
 		case bestScore2 > bestScore3:
-			p4 := &Pizza4{Pizzas3: bestPizza3, pizzaD: pizza}
+			p3 := &Pizza3{Pizzas2: bestPizza2, pizzaC: pizza, IngredientsB: bitset.New(uint(len(params.Ingredients)))}
+			p3.IngredientsB = bestPizza2.IngredientsB.Union(pizza.IngredientsB)
+			pizzas3 = append(pizzas3, p3)
+			pizzas2[len(pizzas2)-1], pizzas2[numBestPizza2] = pizzas2[numBestPizza2], pizzas2[len(pizzas2)-1]
+			pizzas2 = pizzas2[:len(pizzas2)-1]
+		case bestScore3 > bestScore2:
+			p4 := &Pizza4{Pizzas3: bestPizza3, pizzaD: pizza, IngredientsB: bitset.New(uint(len(params.Ingredients)))}
 			p4.IngredientsB = bestPizza3.IngredientsB.Union(pizza.IngredientsB)
 			pizzas4 = append(pizzas4, p4)
+			pizzas3[len(pizzas3)-1], pizzas3[numBestPizza3] = pizzas3[numBestPizza3], pizzas3[len(pizzas3)-1]
+			pizzas3 = pizzas3[:len(pizzas3)-1]
 		}
 	}
 
+	fmt.Println("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
 	sort.Slice(pizzas2, func(i, j int) bool {
 		return pizzas2[i].Score < pizzas2[j].Score
 	})
@@ -241,7 +282,17 @@ func Solve(params SolverParameters) *Solution {
 		return pizzas4[i].Score < pizzas4[j].Score
 	})
 	pizzas4 = pizzas4[:pkg.Min(len(pizzas4), nbrTeam4)]
+
 	fmt.Println("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
+	fmt.Println("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
+	cptPizzasLeft := 0
+	for _, pizza := range params.Input.Pizzas {
+		if !pizza.Used {
+			cptPizzasLeft++
+		}
+	}
+
+	fmt.Println("pizzas left over :", cptPizzasLeft)
 
 	return pizzasToSolution(pizzas2, pizzas3, pizzas4)
 }

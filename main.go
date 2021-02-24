@@ -12,7 +12,7 @@ func main() {
 	var filePaths []string
 	flag.Parse()
 	filePaths = append(filePaths, flag.Args()...)
-	filePaths = append(filePaths, "input/a_example.in")
+	// filePaths = append(filePaths, "input/a_example.in")
 
 	files := []*RawInput(nil)
 	for _, filePath := range filePaths {
