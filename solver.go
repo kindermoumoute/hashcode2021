@@ -1,10 +1,6 @@
 package main
 
 import (
-	"sort"
-
-	"github.com/kindermoumoute/adventofcode/pkg"
-	"github.com/willf/bitset"
 	"go.uber.org/zap"
 )
 
@@ -14,314 +10,27 @@ type SolverParameters struct {
 }
 
 func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
-	log.Info("There are", len(params.Teams), "teams")
-	log.Info("total ingredients", len(params.Ingredients))
-	log.Info("total pizzas", len(params.Pizzas))
+	// Log basic info about this input
+	log.Infof("There are %d teams", 4)
 
-	cptI := uint(0)
-	for _, ingredient := range params.Ingredients {
-		ingredient.ID = cptI
-		cptI++
-	}
-	for _, pizza := range params.Input.Pizzas {
-		pizza.IngredientsB = bitset.New(uint(len(params.Ingredients)))
+	// Compute data structure for this solver here (bitsets, tree, graph)
 
-		for _, ingredient := range pizza.Ingredients {
-			pizza.IngredientsB.Set(ingredient.ID)
-		}
-	}
+	// Solve
+	s := &Solution{}
 
-	nbrTeam2 := params.Input.GetBinomesCount()
-	nbrTeam3 := params.Input.GetTrinomesCount()
-	nbrTeam4 := params.Input.GetQuadrinomesCount()
-
-	seuilMax := 0.90 * float64(len(params.Ingredients))
-	seuilMin := 0.00001 * float64(len(params.Ingredients))
-
-	var pizzas2 []*Pizza2
-
-	// d'abord, on fait des groupes de 2 pizzas
-	// à optimiser, comme on commence arbitrairement par assigner la meilleur pizza avec la première du tableau
-	// il faudrait modifier ça
-	// peut-être d'abord trier les pizzas par nombre d'ingrédients ?
-
-	for _, pizza := range params.Pizzas {
-		pizza.Scoring()
-	}
-
-	sort.Slice(params.Pizzas, func(i, j int) bool {
-		return params.Pizzas[i].Score > params.Pizzas[j].Score
-	})
-
-	for cpt, pizzaA := range params.Pizzas {
-		cpt++
-		if pizzaA.Used {
-			continue
-		}
-
-		if cpt%100 == 0 {
-			log.Info(" %2.2f%%, %d", float64(cpt)/float64(len(params.Pizzas))*100, cpt)
-		}
-		var bestPizza *Pizza
-		bestScore := 0.0
-		for _, pizzaB := range params.Pizzas {
-			if pizzaA == pizzaB || pizzaB.Used {
-				continue
-			}
-			if pizzaB.Score < seuilMin {
-				break
-			}
-			localScore := pizzaA.ScoreWith23(*pizzaB, float64(len(params.Ingredients)))
-			// localScore := pizzaA.ScoreWith(*pizzaB)
-			// fmt.Println(localScore, bestScore)
-			if localScore > bestScore {
-				bestScore = localScore
-				bestPizza = pizzaB
-			}
-		}
-		if bestPizza == nil {
-			continue
-		}
-		if bestScore < seuilMin {
-			continue
-		}
-		pizzaA.Used = true
-		bestPizza.Used = true
-		p2 := &Pizza2{
-			pizzaA:       pizzaA,
-			pizzaB:       bestPizza,
-			IngredientsB: bitset.New(uint(len(params.Ingredients))),
-			Score:        bestScore,
-		}
-		p2.IngredientsB = pizzaA.IngredientsB.Union(bestPizza.IngredientsB)
-		if bestScore > seuilMax {
-			p2.Locked = true
-		}
-		pizzas2 = append(pizzas2, p2)
-		if len(pizzas2) >= nbrTeam2+nbrTeam3+nbrTeam4 {
-			break
-		}
-	}
-
-	//fmt.Println()
-	log.Info("pizzas 2 done", len(pizzas2))
-
-	var pizzas3 []*Pizza3
-
-	for _, pizza := range params.Input.Pizzas {
-		if pizza.Used {
-			continue
-		}
-
-		var bestPizza2 *Pizza2
-		var numBestPizza2 int
-		bestScore := 0.0
-		for numPizza2, pizza2 := range pizzas2 {
-			if pizza2.Locked {
-				continue
-			}
-			// localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
-			localScore := pizza2.ScoreWithPizza(*pizza)
-			if localScore > bestScore {
-				bestScore = localScore
-				bestPizza2 = pizza2
-				numBestPizza2 = numPizza2
-			}
-		}
-		if bestPizza2 == nil {
-			continue
-		}
-		if bestScore < seuilMin {
-			continue
-		}
-		pizza.Used = true
-		p3 := &Pizza3{
-			Pizzas2:      bestPizza2,
-			pizzaC:       pizza,
-			IngredientsB: bitset.New(uint(len(params.Ingredients))),
-			Score:        bestScore,
-		}
-		pizzas2[len(pizzas2)-1], pizzas2[numBestPizza2] = pizzas2[numBestPizza2], pizzas2[len(pizzas2)-1]
-		pizzas2 = pizzas2[:len(pizzas2)-1]
-		p3.IngredientsB = bestPizza2.IngredientsB.Union(pizza.IngredientsB)
-		if bestScore > seuilMax {
-			p3.Locked = true
-		}
-		pizzas3 = append(pizzas3, p3)
-		if len(pizzas3) >= nbrTeam3+nbrTeam4 {
-			break
-		}
-	}
-
-	log.Info("pizzas 3 done", len(pizzas2), len(pizzas3))
-
-	var pizzas4 []*Pizza4
-
-	for _, pizza := range params.Input.Pizzas {
-		if pizza.Used {
-			continue
-		}
-
-		var bestPizza3 *Pizza3
-		var numBestPizza3 int
-		bestScore := 0.0
-		for numPizza3, pizza3 := range pizzas3 {
-			if pizza3.Locked {
-				continue
-			}
-			// localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
-			localScore := pizza3.ScoreWithPizza(*pizza)
-			if localScore > bestScore {
-				bestScore = localScore
-				bestPizza3 = pizza3
-				numBestPizza3 = numPizza3
-			}
-		}
-		if bestPizza3 == nil {
-			continue
-		}
-		if bestScore < seuilMin {
-			continue
-		}
-		pizza.Used = true
-		p4 := &Pizza4{
-			Pizzas3:      bestPizza3,
-			pizzaD:       pizza,
-			IngredientsB: bitset.New(uint(len(params.Ingredients))),
-			Score:        bestScore,
-		}
-		pizzas3[len(pizzas3)-1], pizzas3[numBestPizza3] = pizzas3[numBestPizza3], pizzas3[len(pizzas3)-1]
-		pizzas3 = pizzas3[:len(pizzas3)-1]
-		p4.IngredientsB = bestPizza3.IngredientsB.Union(pizza.IngredientsB)
-		pizzas4 = append(pizzas4, p4)
-		if len(pizzas4) >= nbrTeam4 {
-			break
-		}
-	}
-
-	log.Info("pizzas 4 done", len(pizzas2), len(pizzas3), len(pizzas4))
-
-	// on devrait avoir une dernière étape pour casserles groupes de pizzas si on a trop
-	// de group de pizza et pas assez de team
-
-	for _, pizza := range params.Input.Pizzas {
-		if pizza.Used {
-			continue
-		}
-
-		var bestPizza2 *Pizza2
-		bestScore2 := 0.0
-		var numBestPizza2 int
-		var bestPizza3 *Pizza3
-		bestScore3 := 0.0
-		var numBestPizza3 int
-		if len(pizzas3) < nbrTeam3 {
-			for numPizza2, pizza2 := range pizzas2 {
-				// localScore := pizza2.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
-				localScore := pizza2.ScoreWithPizza(*pizza)
-				if localScore > bestScore2 {
-					bestScore2 = localScore
-					bestPizza2 = pizza2
-					numBestPizza2 = numPizza2
-				}
-			}
-		}
-		if len(pizzas4) < nbrTeam4 {
-			for numPizza3, pizza3 := range pizzas3 {
-				// localScore := pizza3.ScoreWithPizza23(*pizza, float64(len(params.Ingredients)))
-				localScore := pizza3.ScoreWithPizza(*pizza)
-				if localScore > bestScore3 {
-					bestScore3 = localScore
-					bestPizza3 = pizza3
-					numBestPizza3 = numPizza3
-				}
-			}
-		}
-
-		if bestPizza2 != nil {
-			bestScore2 = bestScore2 * bestScore2
-		}
-		if bestPizza3 != nil {
-			bestScore3 = bestScore3 * bestScore3
-		}
-
-		if bestPizza2 == nil && bestPizza3 == nil {
-			continue
-		}
-
-		pizza.Used = true
-
-		switch {
-		case bestScore2 > bestScore3:
-			p3 := &Pizza3{Pizzas2: bestPizza2, pizzaC: pizza, IngredientsB: bitset.New(uint(len(params.Ingredients)))}
-			p3.IngredientsB = bestPizza2.IngredientsB.Union(pizza.IngredientsB)
-			pizzas3 = append(pizzas3, p3)
-			pizzas2[len(pizzas2)-1], pizzas2[numBestPizza2] = pizzas2[numBestPizza2], pizzas2[len(pizzas2)-1]
-			pizzas2 = pizzas2[:len(pizzas2)-1]
-		case bestScore3 > bestScore2:
-			p4 := &Pizza4{Pizzas3: bestPizza3, pizzaD: pizza, IngredientsB: bitset.New(uint(len(params.Ingredients)))}
-			p4.IngredientsB = bestPizza3.IngredientsB.Union(pizza.IngredientsB)
-			pizzas4 = append(pizzas4, p4)
-			pizzas3[len(pizzas3)-1], pizzas3[numBestPizza3] = pizzas3[numBestPizza3], pizzas3[len(pizzas3)-1]
-			pizzas3 = pizzas3[:len(pizzas3)-1]
-		}
-	}
-
-	log.Info("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
-	sort.Slice(pizzas2, func(i, j int) bool {
-		return pizzas2[i].Score < pizzas2[j].Score
-	})
-	pizzas2 = pizzas2[:pkg.Min(len(pizzas2), nbrTeam2)]
-
-	sort.Slice(pizzas3, func(i, j int) bool {
-		return pizzas3[i].Score < pizzas3[j].Score
-	})
-	pizzas3 = pizzas3[:pkg.Min(len(pizzas3), nbrTeam3)]
-
-	sort.Slice(pizzas4, func(i, j int) bool {
-		return pizzas4[i].Score < pizzas4[j].Score
-	})
-	pizzas4 = pizzas4[:pkg.Min(len(pizzas4), nbrTeam4)]
-
-	log.Info("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
-	log.Info("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
-	cptPizzasLeft := 0
-	for _, pizza := range params.Input.Pizzas {
-		if !pizza.Used {
-			cptPizzasLeft++
-		}
-	}
-
-	log.Info("pizzas left over :", cptPizzasLeft)
-
-	return pizzasToSolution(pizzas2, pizzas3, pizzas4)
+	return s
 }
 
-func pizzasToSolution(pizza2s []*Pizza2, pizza3s []*Pizza3, pizza4s []*Pizza4) *Solution {
-	solution := &Solution{}
-	for _, pt2 := range pizza2s {
-		solution.PizzaTeams = append(solution.PizzaTeams, &PizzaTeam{
-			TeamSize: 2,
-			Pizzas:   []*Pizza{pt2.pizzaA, pt2.pizzaB},
-		})
-	}
-	for _, pt3 := range pizza3s {
-		solution.PizzaTeams = append(solution.PizzaTeams, &PizzaTeam{
-			TeamSize: 3,
-			Pizzas:   []*Pizza{pt3.Pizzas2.pizzaA, pt3.Pizzas2.pizzaB, pt3.pizzaC},
-		})
-	}
-	for _, pt4 := range pizza4s {
-		solution.PizzaTeams = append(solution.PizzaTeams, &PizzaTeam{
-			TeamSize: 4,
-			Pizzas: []*Pizza{
-				pt4.Pizzas3.Pizzas2.pizzaA,
-				pt4.Pizzas3.Pizzas2.pizzaB,
-				pt4.Pizzas3.pizzaC,
-				pt4.pizzaD,
-			},
-		})
-	}
-
-	return solution
-}
+// Note: we can use workerpool for parallelizing intensive calculus:
+//	wp := workerpool.New(2)
+//	requests := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
+//
+//	for _, r := range requests {
+//		r := r
+//		wp.Submit(func() {
+//			fmt.Println("Handling request:", r)
+//		})
+//	}
+//
+//	wp.StopWait()
+//
