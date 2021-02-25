@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/kindermoumoute/adventofcode/pkg"
 	"github.com/willf/bitset"
+	"go.uber.org/zap"
 )
 
 type SolverParameters struct {
@@ -13,10 +13,10 @@ type SolverParameters struct {
 	//Param1 int
 }
 
-func Solve(params SolverParameters) *Solution {
-	fmt.Println("There are", len(params.Teams), "teams")
-	fmt.Println("total ingredients", len(params.Ingredients))
-	fmt.Println("total pizzas", len(params.Pizzas))
+func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
+	log.Info("There are", len(params.Teams), "teams")
+	log.Info("total ingredients", len(params.Ingredients))
+	log.Info("total pizzas", len(params.Pizzas))
 
 	cptI := uint(0)
 	for _, ingredient := range params.Ingredients {
@@ -60,7 +60,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 
 		if cpt%100 == 0 {
-			fmt.Printf(" %2.2f%%, %d", float64(cpt)/float64(len(params.Pizzas))*100, cpt)
+			log.Info(" %2.2f%%, %d", float64(cpt)/float64(len(params.Pizzas))*100, cpt)
 		}
 		var bestPizza *Pizza
 		bestScore := 0.0
@@ -103,8 +103,8 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println()
-	fmt.Println("pizzas 2 done", len(pizzas2))
+	//fmt.Println()
+	log.Info("pizzas 2 done", len(pizzas2))
 
 	var pizzas3 []*Pizza3
 
@@ -153,7 +153,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("pizzas 3 done", len(pizzas2), len(pizzas3))
+	log.Info("pizzas 3 done", len(pizzas2), len(pizzas3))
 
 	var pizzas4 []*Pizza4
 
@@ -199,7 +199,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("pizzas 4 done", len(pizzas2), len(pizzas3), len(pizzas4))
+	log.Info("pizzas 4 done", len(pizzas2), len(pizzas3), len(pizzas4))
 
 	// on devrait avoir une dernière étape pour casserles groupes de pizzas si on a trop
 	// de group de pizza et pas assez de team
@@ -267,7 +267,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
+	log.Info("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
 	sort.Slice(pizzas2, func(i, j int) bool {
 		return pizzas2[i].Score < pizzas2[j].Score
 	})
@@ -283,8 +283,8 @@ func Solve(params SolverParameters) *Solution {
 	})
 	pizzas4 = pizzas4[:pkg.Min(len(pizzas4), nbrTeam4)]
 
-	fmt.Println("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
-	fmt.Println("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
+	log.Info("solver done", len(pizzas2), len(pizzas3), len(pizzas4))
+	log.Info("max per team : ", nbrTeam2, nbrTeam3, nbrTeam4)
 	cptPizzasLeft := 0
 	for _, pizza := range params.Input.Pizzas {
 		if !pizza.Used {
@@ -292,7 +292,7 @@ func Solve(params SolverParameters) *Solution {
 		}
 	}
 
-	fmt.Println("pizzas left over :", cptPizzasLeft)
+	log.Info("pizzas left over :", cptPizzasLeft)
 
 	return pizzasToSolution(pizzas2, pizzas3, pizzas4)
 }
