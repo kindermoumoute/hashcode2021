@@ -42,17 +42,29 @@ func main() {
 		alphas = append(alphas, i)
 	}
 
+	alphasPerInput := map[string]float64{
+		"f": 0.15,
+	}
+
 	// Solve each input in a different worker
 	wp := workerpool.New(runtime.NumCPU())
 	for _, rawInput := range files {
 		rawInput := rawInput
 		taskLogger := log.Named(rawInput.FileName)
-		for _, alpha := range alphas {
+
+		tryingAlphas := append([]float64{}, alphas...)
+		bestAlpha, exist := alphasPerInput[rawInput.FileName]
+		if exist {
+			tryingAlphas = []float64{bestAlpha}
+		}
+		for _, alpha := range tryingAlphas {
 			alpha := alpha
 			wp.Submit(func() {
 				solverParameters := SolverParameters{
 					Input:     DecodeInput(rawInput.Raw),
 					AlphaSort: alpha,
+					Beta:      0.4,
+					Gamma:     0.4,
 				}
 				solution := Solve(taskLogger, solverParameters)
 				output := solution.Output()

@@ -11,6 +11,8 @@ type SolverParameters struct {
 	Input
 
 	AlphaSort float64
+	Beta      float64
+	Gamma     float64
 }
 
 func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
@@ -31,14 +33,14 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 
 	nbCars := float64(len(params.Cars))
 	for i, car := range params.Cars {
-		ordonancementScorePerCar := (nbCars - float64(i) + 1) / nbCars
-		ponderationSurLesBonusDeTemps := params.AlphaSort + math.Max(0, (float64(params.SimulationTimeSeconds)-car.GetPathDuration())/float64(params.DestinationScore))
-
-		//log.Infof("%d GetPathDuration %f", i, car.GetPathDuration())
-		//log.Infof("%d ordonancementScorePerCar %f", i, ordonancementScorePerCar)
-		//log.Infof("%d ponderationSurLesBonusDeTemps %f", i, ponderationSurLesBonusDeTemps)
-		//log.Infof("%d y %f", i, y)
-		car.GlobalScore = ordonancementScorePerCar * ponderationSurLesBonusDeTemps
+		ordonancementScorePerCar := math.Exp(params.Beta * (nbCars - float64(i)) / nbCars)
+		ponderationSurLesBonusDeTemps := math.Exp(params.Gamma * (params.AlphaSort + (float64(params.SimulationTimeSeconds)-car.GetPathDuration())/float64(params.DestinationScore)))
+		y := math.Log(math.Max(1, ordonancementScorePerCar*ponderationSurLesBonusDeTemps))
+		// log.Infof("%d GetPathDuration %f", i, car.GetPathDuration())
+		// log.Infof("%d ordonancementScorePerCar %f", i, ordonancementScorePerCar)
+		// log.Infof("%d ponderationSurLesBonusDeTemps %f", i, ponderationSurLesBonusDeTemps)
+		// log.Infof("%d y %f", i, y)
+		car.GlobalScore = math.Max(params.AlphaSort, y)
 	}
 
 	for _, car := range params.Cars {
@@ -66,6 +68,9 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 		}
 		for _, feu := range noeud.StreetEnds {
 			time := int(math.Ceil(feu.Score / minimum))
+			if time > params.SimulationTimeSeconds/len(noeud.StreetEnds)/10 {
+				time = params.SimulationTimeSeconds / len(noeud.StreetEnds) / 10
+			}
 			if time <= 0 {
 				time = 1
 				// continue
