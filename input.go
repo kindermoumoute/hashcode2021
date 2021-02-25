@@ -56,7 +56,9 @@ func DecodeInput(s string) Input {
 	}
 
 	for i := 0; i < totalCars; i++ {
-		c := &Car{}
+		c := &Car{
+			ID: i,
+		}
 		fields := strings.Split(lines[lineIndex], " ")
 		for _, streetName := range fields[1:] {
 			c.Route = append(c.Route, input.StreetsByName[streetName])
