@@ -31,14 +31,14 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 
 	nbCars := float64(len(params.Cars))
 	for i, car := range params.Cars {
-		ordonancementScorePerCar := params.AlphaSort + ((nbCars - float64(i)) / nbCars)
-		ponderationSurLesBonusDeTemps := (float64(params.SimulationTimeSeconds) - car.GetPathDuration()) / float64(params.DestinationScore)
-		y := ordonancementScorePerCar * ponderationSurLesBonusDeTemps
-		log.Infof("%d GetPathDuration %f", i, car.GetPathDuration())
-		log.Infof("%d ordonancementScorePerCar %f", i, ordonancementScorePerCar)
-		log.Infof("%d ponderationSurLesBonusDeTemps %f", i, ponderationSurLesBonusDeTemps)
-		log.Infof("%d y %f", i, y)
-		car.GlobalScore = math.Max(params.AlphaSort, y)
+		ordonancementScorePerCar := (nbCars - float64(i) + 1) / nbCars
+		ponderationSurLesBonusDeTemps := params.AlphaSort + math.Max(0, (float64(params.SimulationTimeSeconds)-car.GetPathDuration())/float64(params.DestinationScore))
+
+		//log.Infof("%d GetPathDuration %f", i, car.GetPathDuration())
+		//log.Infof("%d ordonancementScorePerCar %f", i, ordonancementScorePerCar)
+		//log.Infof("%d ponderationSurLesBonusDeTemps %f", i, ponderationSurLesBonusDeTemps)
+		//log.Infof("%d y %f", i, y)
+		car.GlobalScore = ordonancementScorePerCar * ponderationSurLesBonusDeTemps
 	}
 
 	for _, car := range params.Cars {

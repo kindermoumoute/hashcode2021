@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"runtime"
@@ -36,20 +37,30 @@ func main() {
 		})
 	}
 
+	alphas := []float64(nil)
+	for i := 0.05; i < 1.0; i += 0.05 {
+		alphas = append(alphas, i)
+	}
+
 	// Solve each input in a different worker
 	wp := workerpool.New(runtime.NumCPU())
 	for _, rawInput := range files {
 		rawInput := rawInput
 		taskLogger := log.Named(rawInput.FileName)
-		wp.Submit(func() {
-			solverParameters := SolverParameters{
-				Input:     DecodeInput(rawInput.Raw),
-				AlphaSort: 0.5,
-			}
-			solution := Solve(taskLogger, solverParameters)
-			taskLogger.Infof("score is %d", solution.Scoring())
-			assertNoErr(ioutil.WriteFile(path.Join("output", rawInput.FileName+"_latest.txt"), solution.Output(), 0644))
-		})
+		for _, alpha := range alphas {
+			alpha := alpha
+			wp.Submit(func() {
+				solverParameters := SolverParameters{
+					Input:     DecodeInput(rawInput.Raw),
+					AlphaSort: alpha,
+				}
+				solution := Solve(taskLogger, solverParameters)
+				output := solution.Output()
+				taskLogger.Infof("score is %d", solution.Scoring())
+				assertNoErr(ioutil.WriteFile(path.Join("output", rawInput.FileName+fmt.Sprintf("_%2f_latest.txt", alpha)), output, 0644))
+			})
+		}
+
 	}
 	wp.StopWait()
 }
