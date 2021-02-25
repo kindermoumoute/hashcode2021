@@ -37,9 +37,18 @@ func main() {
 		})
 	}
 
-	alphas := []float64(nil)
-	for i := 0.05; i < 1.0; i += 0.05 {
-		alphas = append(alphas, i)
+	// alphas := []float64{}
+	// for i := 0.05; i < 1.0; i += 0.05 {
+	// 	alphas = append(alphas, i)
+	// }
+
+	alphasPerInput := map[string]float64{
+		"a": 0.1545,
+		"b": 0.1545,
+		"c": 0.1545,
+		"d": 0.1545,
+		"e": 0.1545,
+		"f": 0.1545,
 	}
 
 	// Solve each input in a different worker
@@ -47,12 +56,17 @@ func main() {
 	for _, rawInput := range files {
 		rawInput := rawInput
 		taskLogger := log.Named(rawInput.FileName)
-		for _, alpha := range alphas {
+
+		bestAlpha := alphasPerInput[rawInput.FileName]
+		tryingAlphas := []float64{bestAlpha}
+		for _, alpha := range tryingAlphas {
 			alpha := alpha
 			wp.Submit(func() {
 				solverParameters := SolverParameters{
 					Input:     DecodeInput(rawInput.Raw),
 					AlphaSort: alpha,
+					Beta:      1.2,
+					Gamma:     0.4,
 				}
 				solution := Solve(taskLogger, solverParameters)
 				output := solution.Output()
