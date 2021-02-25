@@ -27,7 +27,7 @@ type Input struct {
 
 func DecodeInput(s string) Input {
 	input := Input{
-		AlphaSort:     1,
+		AlphaSort:     0.5,
 		StreetsByName: make(map[string]*Street),
 	}
 

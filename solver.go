@@ -31,7 +31,11 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 
 	nbCars := float64(len(params.Cars))
 	for i, car := range params.Cars {
-		car.GlobalScore = (params.AlphaSort + ((nbCars - float64(i)) / nbCars)) * ((float64(params.SimulationTimeSeconds) - car.GetPathDuration()) / float64(params.DestinationScore))
+		car.GlobalScore = math.Max(
+			params.AlphaSort,
+			(params.AlphaSort+((nbCars-float64(i))/nbCars))
+			*((float64(params.SimulationTimeSeconds)-car.GetPathDuration())
+			/float64(params.DestinationScore)))
 	}
 
 	for _, car := range params.Cars {
@@ -59,22 +63,23 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 		}
 		for _, feu := range noeud.StreetEnds {
 			time := int(math.Ceil(feu.Score / minimum))
-			if time == 0 {
-				continue
+			if time <= 0 {
+				time = 1
+				// continue
 			}
 			interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
 				Name:               feu.Name,
-				GreenLightDuration: time,
+				GreenLightDuration: 1,
 			})
 		}
-		if len(interSolu.StreetSolutions) == 0 {
-			for _, feu := range noeud.StreetEnds {
-				interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
-					Name:               feu.Name,
-					GreenLightDuration: 1,
-				})
-			}
-		}
+		// if len(interSolu.StreetSolutions) == 0 {
+		// 	for _, feu := range noeud.StreetEnds {
+		// 		interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
+		// 			Name:               feu.Name,
+		// 			GreenLightDuration: 1,
+		// 		})
+		// 	}
+		// }
 		s.Intersections = append(s.Intersections, interSolu)
 	}
 
