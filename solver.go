@@ -72,17 +72,17 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 			}
 			interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
 				Name:               feu.Name,
-				GreenLightDuration: 1,
+				GreenLightDuration: time,
 			})
 		}
-		// if len(interSolu.StreetSolutions) == 0 {
-		// 	for _, feu := range noeud.StreetEnds {
-		// 		interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
-		// 			Name:               feu.Name,
-		// 			GreenLightDuration: 1,
-		// 		})
-		// 	}
-		// }
+		if len(interSolu.StreetSolutions) == 0 {
+			for _, feu := range noeud.StreetEnds {
+				interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
+					Name:               feu.Name,
+					GreenLightDuration: 1,
+				})
+			}
+		}
 		s.Intersections = append(s.Intersections, interSolu)
 	}
 
