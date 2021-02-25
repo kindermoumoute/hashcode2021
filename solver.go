@@ -18,7 +18,19 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 	// Compute data structure for this solver here (bitsets, tree, graph)
 
 	// Solve
-	s := &Solution{}
+	s := &Solution{
+		Intersections: []*IntersectionSolution{
+			{
+				ID: 1,
+				StreetSolutions: []*StreetSolution{
+					{
+						Name:               "rue-d-athenes",
+						GreenLightDuration: 3,
+					},
+				},
+			},
+		},
+	}
 
 	return s
 }
