@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"runtime"
 	"strings"
+
+	"github.com/gammazero/workerpool"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -27,19 +31,31 @@ func main() {
 			FileName: fileName,
 		})
 	}
+	wp := workerpool.New(runtime.NumCPU())
 
-	r := NewRunner()
+	//r := NewRunner()
 	for _, rawInput := range files {
-		r.RunSolver(rawInput.FileName+"_latest.txt", SolverParameters{
-			Input: DecodeInput(rawInput.Raw),
+		rawInput := rawInput
+		wp.Submit(func() {
+			solverParameters := SolverParameters{
+				Input: DecodeInput(rawInput.Raw),
+			}
+			devLog, _ := zap.Config{
+				Level:            zap.NewAtomicLevelAt(zap.DebugLevel),
+				Development:      true,
+				Encoding:         "console",
+				EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+				OutputPaths:      []string{"stdout"},
+				ErrorOutputPaths: []string{"stdout"},
+			}.Build()
+			log := devLog.Named(rawInput.FileName).Sugar()
+			solution := Solve(log, solverParameters)
+			log.Infof("score is %d", solution.Scoring())
+			assertNoErr(ioutil.WriteFile(path.Join("output", rawInput.FileName+"_latest.txt"), solution.Output(), 0644))
 		})
-
-		// for i := 0; i < 1000; i++ {
-		// 	localI := i
-		// }
 	}
 
-	r.Wait()
+	wp.StopWait()
 }
 
 func assertNoErr(err error) {
