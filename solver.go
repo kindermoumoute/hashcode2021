@@ -11,7 +11,9 @@ type SolverParameters struct {
 
 func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 	// Log basic info about this input
-	log.Infof("There are %d teams", 4)
+	log.Infof("There are %d teams", len(params.Intersections))
+	log.Infof("There are %d teams", len(params.Streets))
+	log.Infof("There are %d teams", len(params.Cars))
 
 	// Compute data structure for this solver here (bitsets, tree, graph)
 
