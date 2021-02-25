@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -10,7 +9,8 @@ import (
 
 type SolverParameters struct {
 	Input
-	//Param1 int
+
+	AlphaSort float64
 }
 
 func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
@@ -24,18 +24,21 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 	for _, street := range params.Streets {
 		street.EndIntersection.StreetEnds = append(street.EndIntersection.StreetEnds, street)
 	}
-	fmt.Println("streets added to StreetEnds")
+	log.Infof("streets added to StreetEnds")
 	sort.SliceStable(params.Cars, func(i, j int) bool {
 		return params.Cars[i].GetPathDuration() < params.Cars[j].GetPathDuration()
 	})
 
 	nbCars := float64(len(params.Cars))
 	for i, car := range params.Cars {
-		car.GlobalScore = math.Max(
-			params.AlphaSort,
-			(params.AlphaSort+((nbCars-float64(i))/nbCars))
-			*((float64(params.SimulationTimeSeconds)-car.GetPathDuration())
-			/float64(params.DestinationScore)))
+		ordonancementScorePerCar := params.AlphaSort + ((nbCars - float64(i)) / nbCars)
+		ponderationSurLesBonusDeTemps := (float64(params.SimulationTimeSeconds) - car.GetPathDuration()) / float64(params.DestinationScore)
+		y := ordonancementScorePerCar * ponderationSurLesBonusDeTemps
+		log.Infof("%d GetPathDuration %f", i, car.GetPathDuration())
+		log.Infof("%d ordonancementScorePerCar %f", i, ordonancementScorePerCar)
+		log.Infof("%d ponderationSurLesBonusDeTemps %f", i, ponderationSurLesBonusDeTemps)
+		log.Infof("%d y %f", i, y)
+		car.GlobalScore = math.Max(params.AlphaSort, y)
 	}
 
 	for _, car := range params.Cars {
@@ -43,7 +46,7 @@ func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 			street.Score += car.GlobalScore
 		}
 	}
-	fmt.Println("Score computed")
+	log.Infof("Score computed")
 	s := &Solution{}
 	for _, noeud := range params.Intersections {
 		var utilsiationFeus []float64

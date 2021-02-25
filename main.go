@@ -43,7 +43,8 @@ func main() {
 		taskLogger := log.Named(rawInput.FileName)
 		wp.Submit(func() {
 			solverParameters := SolverParameters{
-				Input: DecodeInput(rawInput.Raw),
+				Input:     DecodeInput(rawInput.Raw),
+				AlphaSort: 0.5,
 			}
 			solution := Solve(taskLogger, solverParameters)
 			taskLogger.Infof("score is %d", solution.Scoring())
