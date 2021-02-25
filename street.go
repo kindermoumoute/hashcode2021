@@ -5,4 +5,8 @@ type Street struct {
 	TimeToTravelSeconds int
 	StartIntersection   *Intersection
 	EndIntersection     *Intersection
+
+	// Data used for solver
+	NbrTimeUsed int
+	Score       float64
 }

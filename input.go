@@ -20,10 +20,14 @@ type Input struct {
 
 	// Usefull data
 	StreetsByName map[string]*Street
+
+	// Parameters
+	AlphaSort float64
 }
 
 func DecodeInput(s string) Input {
 	input := Input{
+		AlphaSort:     1,
 		StreetsByName: make(map[string]*Street),
 	}
 

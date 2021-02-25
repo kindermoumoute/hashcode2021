@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"math"
+	"sort"
+
 	"go.uber.org/zap"
 )
 
@@ -11,25 +15,67 @@ type SolverParameters struct {
 
 func Solve(log *zap.SugaredLogger, params SolverParameters) *Solution {
 	// Log basic info about this input
-	log.Infof("There are %d teams", len(params.Intersections))
-	log.Infof("There are %d teams", len(params.Streets))
-	log.Infof("There are %d teams", len(params.Cars))
+	log.Infof("There are %d intersections", len(params.Intersections))
+	log.Infof("There are %d streets", len(params.Streets))
+	log.Infof("There are %d cars", len(params.Cars))
 
 	// Compute data structure for this solver here (bitsets, tree, graph)
 
-	// Solve
-	s := &Solution{
-		Intersections: []*IntersectionSolution{
-			{
-				ID: 1,
-				StreetSolutions: []*StreetSolution{
-					{
-						Name:               "rue-d-athenes",
-						GreenLightDuration: 3,
-					},
-				},
-			},
-		},
+	for _, street := range params.Streets {
+		street.EndIntersection.StreetEnds = append(street.EndIntersection.StreetEnds, street)
+	}
+	fmt.Println("streets added to StreetEnds")
+	sort.SliceStable(params.Cars, func(i, j int) bool {
+		return params.Cars[i].GetPathDuration() < params.Cars[j].GetPathDuration()
+	})
+
+	nbCars := float64(len(params.Cars))
+	for i, car := range params.Cars {
+		car.GlobalScore = (params.AlphaSort + ((nbCars - float64(i)) / nbCars)) * ((float64(params.SimulationTimeSeconds) - car.GetPathDuration()) / float64(params.DestinationScore))
+	}
+
+	for _, car := range params.Cars {
+		for _, street := range car.Route {
+			street.Score += car.GlobalScore
+		}
+	}
+	fmt.Println("Score computed")
+	s := &Solution{}
+	for _, noeud := range params.Intersections {
+		var utilsiationFeus []float64
+		minimum := math.MaxFloat64
+		for _, feu := range noeud.StreetEnds {
+			utilsiationFeus = append(utilsiationFeus, feu.Score)
+			if minimum > feu.Score {
+				minimum = feu.Score
+			}
+		}
+		if minimum == 0 {
+			minimum = 1
+		}
+
+		interSolu := &IntersectionSolution{
+			ID: noeud.ID,
+		}
+		for _, feu := range noeud.StreetEnds {
+			time := int(math.Ceil(feu.Score / minimum))
+			if time == 0 {
+				continue
+			}
+			interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
+				Name:               feu.Name,
+				GreenLightDuration: time,
+			})
+		}
+		if len(interSolu.StreetSolutions) == 0 {
+			for _, feu := range noeud.StreetEnds {
+				interSolu.StreetSolutions = append(interSolu.StreetSolutions, &StreetSolution{
+					Name:               feu.Name,
+					GreenLightDuration: 1,
+				})
+			}
+		}
+		s.Intersections = append(s.Intersections, interSolu)
 	}
 
 	return s
